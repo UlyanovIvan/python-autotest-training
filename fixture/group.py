@@ -1,5 +1,5 @@
 
-
+from model.group import Group
 class GroupHelper:
 
     def __init__(self, app):
@@ -32,23 +32,36 @@ class GroupHelper:
         # submit group creation
         wd.find_element_by_name("submit").click()
         self.retern_to_groups_page()
+        self.group_cashe = None
+
 
     def select_first_group(self):
         wd = self.app.wd
         wd.find_element_by_name("selected[]").click()
 
+    def select_group_by_index(self, index):
+        wd = self.app.wd
+        wd.find_elements_by_name("selected[]")[index].click()
+
     def delete_first_group(self):
+        self.delete_group_by_index(0)
+
+    def delete_group_by_index(self, index):
         wd = self.app.wd
         self.open_groups_page()
-        self.select_first_group()
+        self.select_group_by_index(index)
         # submit deletion
         wd.find_element_by_name("delete").click()
         self.retern_to_groups_page()
+        self.group_cashe = None
 
-    def modify_first_group(self, new_group_data):
+    def modify_first_group(self):
+        self.modify_group_by_index(0)
+
+    def modify_group_by_index(self, index, new_group_data):
         wd = self.app.wd
         self.open_groups_page()
-        self.select_first_group()
+        self.select_group_by_index(index)
         # open modification form
         wd.find_element_by_name("edit").click()
         # fill group form
@@ -56,6 +69,7 @@ class GroupHelper:
         # submit modification
         wd.find_element_by_name("update").click()
         self.retern_to_groups_page()
+        self.group_cashe = None
 
     def retern_to_groups_page(self):
         wd = self.app.wd
@@ -65,3 +79,16 @@ class GroupHelper:
         wd = self.app.wd
         self.open_groups_page()
         return len(wd.find_elements_by_name("selected[]"))
+
+    group_cashe = None
+
+    def get_group_list(self):
+        if self.group_cashe is None:
+            wd = self.app.wd
+            self.open_groups_page()
+            self.group_cashe = []
+            for element in wd.find_elements_by_css_selector("span.group"):
+                text = element.text
+                id = element.find_element_by_name("selected[]").get_attribute("value")
+                self.group_cashe.append(Group(name = text, id = id))
+        return list(self.group_cashe)
